@@ -2,12 +2,20 @@ import http from 'http';
 import { promises as fs } from 'fs';
 import path from 'path';
 import url from 'url';
+import crypto from 'crypto';
 
 const hostname = '127.0.0.1';
 const port = 3000;
 
 const projectRoot = process.cwd();
 const publicDirectory = path.join(projectRoot, 'frontend');
+
+// Admin credentials and session settings (override via env variables)
+const BASIC_AUTH_USER = process.env.BASIC_AUTH_USER || 'admin';
+const BASIC_AUTH_PASS = process.env.BASIC_AUTH_PASS || 'FinalFantasy7';
+const SESSION_SECRET = process.env.SESSION_SECRET || 'dev-session-secret';
+const SESSION_MAX_AGE_SECONDS = 7 * 24 * 60 * 60; // 7 days
+const SESSION_COOKIE_NAME = 'reboot_session';
 
 const contentTypeByExtension = {
 	'.html': 'text/html; charset=utf-8',
@@ -42,8 +50,118 @@ async function fileExists(filePath) {
 	}
 }
 
+function parseCookies(cookieHeader) {
+	if (!cookieHeader) return {};
+	return cookieHeader.split(';').reduce((acc, part) => {
+		const [k, v] = part.split('=');
+		if (!k) return acc;
+		acc[k.trim()] = decodeURIComponent((v || '').trim());
+		return acc;
+	}, {});
+}
+
+function sign(value) {
+	return crypto.createHmac('sha256', SESSION_SECRET).update(value).digest('hex');
+}
+
+function createSessionCookie(username) {
+	const expiresAt = Math.floor(Date.now() / 1000) + SESSION_MAX_AGE_SECONDS;
+	const payload = `${username}|${expiresAt}`;
+	const signature = sign(payload);
+	return `${payload}|${signature}`;
+}
+
+function verifySessionCookie(cookieValue) {
+	if (!cookieValue) return null;
+	const parts = cookieValue.split('|');
+	if (parts.length !== 3) return null;
+	const [username, expStr, signature] = parts;
+	const payload = `${username}|${expStr}`;
+	if (sign(payload) !== signature) return null;
+	const exp = parseInt(expStr, 10);
+	if (!Number.isFinite(exp) || exp < Math.floor(Date.now() / 1000)) return null;
+	return { username };
+}
+
+function setCookieHeader(name, value, options = {}) {
+	const attrs = [`${name}=${encodeURIComponent(value)}`];
+	attrs.push(`Path=${options.path || '/'}`);
+	if (options.httpOnly !== false) attrs.push('HttpOnly');
+	attrs.push(`SameSite=${options.sameSite || 'Lax'}`);
+	if (options.maxAge != null) attrs.push(`Max-Age=${options.maxAge}`);
+	if (options.secure) attrs.push('Secure');
+	return attrs.join('; ');
+}
+
+function renderLoginPage(message, redirectTo) {
+	const notice = message ? `<p style="color:#b00020;font-weight:700">${message}</p>` : '';
+	const redirectField = redirectTo ? `<input type="hidden" name="redirect" value="${encodeURIComponent(redirectTo)}" />` : '';
+	return `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Sign in</title>
+</head>
+<body style="margin:0;display:flex;min-height:100vh;align-items:center;justify-content:center;background:#7d88a5;font-family:-apple-system,Segoe UI,Roboto,Ubuntu,Arial,sans-serif;color:#1f2430">
+  <form method="POST" action="/__login" style="background:#d8ccb4;border-radius:16px;padding:24px;box-shadow:0 6px 14px rgba(0,0,0,0.12);width:min(420px,92vw)">
+    <h2 style="margin:0 0 10px">Admin Login</h2>
+    ${notice}
+    <label style="display:block;margin:10px 0 4px;font-weight:700">Username</label>
+    <input name="username" type="text" style="width:100%;padding:10px;border-radius:10px;border:1px solid #b8b6b1;background:#fffdf9" required />
+    <label style="display:block;margin:12px 0 4px;font-weight:700">Password</label>
+    <input name="password" type="password" style="width:100%;padding:10px;border-radius:10px;border:1px solid #b8b6b1;background:#fffdf9" required />
+    ${redirectField}
+    <button type="submit" style="margin-top:14px;width:100%;appearance:none;border:0;background:#d6a161;color:#2a2118;font-weight:800;padding:10px 14px;border-radius:14px;cursor:pointer;box-shadow:0 3px 0 rgba(0,0,0,0.15)">Sign in</button>
+  </form>
+</body>
+</html>`;
+}
+
+function parseFormUrlEncoded(body) {
+	const params = {};
+	for (const pair of body.split('&')) {
+		if (!pair) continue;
+		const [k, v] = pair.split('=');
+		if (!k) continue;
+		params[decodeURIComponent(k.replace(/\+/g, ' '))] = decodeURIComponent((v || '').replace(/\+/g, ' '));
+	}
+	return params;
+}
+
 const server = http.createServer(async (req, res) => {
 	try {
+		const parsed = url.parse(req.url || '/', true);
+		const pathname = parsed.pathname || '/';
+		const cookies = parseCookies(req.headers['cookie']);
+		const session = verifySessionCookie(cookies[SESSION_COOKIE_NAME]);
+
+		// Logout route
+		if (pathname === '/__logout') {
+			res.statusCode = 302;
+			res.setHeader('Set-Cookie', setCookieHeader(SESSION_COOKIE_NAME, '', { maxAge: 0, httpOnly: true, sameSite: 'Lax', path: '/' }));
+			res.setHeader('Location', '/signin.html');
+			res.end();
+			return;
+		}
+
+		// If no valid session, fall back to Basic Auth popup; on success, set a session cookie
+		if (!session) {
+			const auth = req.headers['authorization'] || '';
+			const expected = 'Basic ' + Buffer.from(`${BASIC_AUTH_USER}:${BASIC_AUTH_PASS}`).toString('base64');
+			if (auth !== expected) {
+				res.writeHead(401, {
+					'WWW-Authenticate': 'Basic realm="Reboot", charset="UTF-8"',
+					'Content-Type': 'text/plain; charset=utf-8',
+				});
+				res.end('Authentication required.');
+				return;
+			}
+			// Set a session cookie so subsequent requests don't prompt again
+			const cookieVal = createSessionCookie(BASIC_AUTH_USER);
+			res.setHeader('Set-Cookie', setCookieHeader(SESSION_COOKIE_NAME, cookieVal, { httpOnly: true, sameSite: 'Lax', path: '/', maxAge: SESSION_MAX_AGE_SECONDS }));
+		}
+
 		const absolutePath = resolveFilePath(req.url || '/');
 		if (!absolutePath.startsWith(publicDirectory)) {
 			res.writeHead(403, { 'Content-Type': 'text/plain; charset=utf-8' });

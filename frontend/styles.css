@@ -116,9 +116,14 @@ body {
   border-radius: 26px;
   padding: 20px 18px;
   margin: 12px 0;
+  cursor: pointer;
 }
 .project-row--alt {
   background: var(--paper-alt);
+}
+.project-row--selected {
+  outline: 3px solid rgba(34, 27, 18, 0.35);
+  box-shadow: 0 0 0 3px rgba(34, 27, 18, 0.12) inset;
 }
 .project-row__title {
   font-size: 28px;
@@ -154,8 +159,8 @@ body {
   gap: 12px;
 }
 .project-detail__content .detail-panel {
-  background: #12151f;
-  color: #f0f3ff;
+  background: var(--ink);
+  color: var(--white);
   border-radius: 8px;
   padding: 16px;
   min-height: 420px;
@@ -260,9 +265,20 @@ body {
   cursor: pointer;
   box-shadow: 0 3px 0 rgba(0, 0, 0, 0.15);
 }
+.btn:hover {
+  filter: brightness(0.98);
+}
+.btn:active {
+  transform: translateY(1px);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.15);
+}
 .btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+.btn[aria-busy="true"] {
+  opacity: 0.8;
+  pointer-events: none;
 }
 .btn--primary {
   background: var(--gold);
