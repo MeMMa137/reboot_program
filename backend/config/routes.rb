@@ -9,6 +9,8 @@ Rails.application.routes.draw do
     namespace :v1 do
       post "auth/token", to: "auth#token"
       get "auth/me", to: "auth#me"
+
+      post "ysws/submit", to: "ysws#submit"
     end
   end
 
