@@ -7,17 +7,49 @@ class Airtable::BaseSyncJob < ApplicationJob
     super
   end
 
+  # Syncs records to Airtable, creating new or updating existing.
+  # Stores airtable_id on local records for future updates.
   def perform
-    airtable_records = records_to_sync.map do |record|
-      table.new(field_mapping(record))
+    records_to_sync.each do |record|
+      sync_single_record(record)
     end
-
-    table.batch_upsert(airtable_records, primary_key_field)
-  ensure
-    records_to_sync.update_all(synced_at_field => Time.now)
   end
 
   private
+
+  # Syncs a single record to Airtable.
+  # Creates if no airtable_id, updates if airtable_id exists.
+  def sync_single_record(record)
+    fields = field_mapping(record)
+
+    if record.airtable_id.present?
+      update_airtable_record(record, fields)
+    else
+      create_airtable_record(record, fields)
+    end
+
+    record.update_column(synced_at_field, Time.current)
+  rescue Norairrecord::Error => e
+    Rails.logger.error("Airtable sync failed for #{record.class}##{record.id}: #{e.message}")
+  end
+
+  # Creates a new record in Airtable and stores the airtable_id locally.
+  def create_airtable_record(record, fields)
+    airtable_record = table.new(fields)
+    airtable_record.create
+    record.update_column(:airtable_id, airtable_record.id)
+  end
+
+  # Updates an existing Airtable record by its stored airtable_id.
+  def update_airtable_record(record, fields)
+    airtable_record = table.find(record.airtable_id)
+    fields.each { |key, value| airtable_record[key] = value }
+    airtable_record.save
+  rescue Norairrecord::RecordNotFoundError
+    # Record was deleted in Airtable, recreate it
+    record.update_column(:airtable_id, nil)
+    create_airtable_record(record, fields)
+  end
 
   def table_name
     raise NotImplementedError, "Subclass must implement #table_name"

@@ -1,26 +1,26 @@
+# Syncs users TO Airtable from the local database.
+# Pushes user data for external reporting/management.
 class Airtable::UserSyncJob < Airtable::BaseSyncJob
-  def table_name = "_users"
+  # @return [String] Airtable table name
+  def table_name
+    ENV.fetch("AIRTABLE_USERS_TABLE", "Users")
+  end
 
-  def records = User.all
+  # @return [ActiveRecord::Relation] all User records
+  def records
+    User.all
+  end
 
-  def primary_key_field = "id"
-
+  # Maps User attributes to Airtable fields.
+  # @param user [User] the user to map
+  # @return [Hash] Airtable field values
   def field_mapping(user)
     {
-      "first_name" => user.first_name,
-      "last_name" => user.last_name,
-      "email" => user.email,
-      "slack_id" => user.slack_id,
-      "avatar_url" => "https://cachet.dunkirk.sh/users/#{user.slack_id}/r",
-      "has_commented" => user.has_commented?,
-      "has_some_role_of_access" => user.roles.any?,
-      "hours" => user.all_time_coding_seconds&.fdiv(3600),
-      "verification_status" => user.verification_status.to_s,
-      "created_at" => user.created_at,
-      "synced_at" => Time.now,
-      "is_banned" => user.banned,
-      "flavor_id" => user.id.to_s,
-      "ref" => user.ref
+      "Slack ID" => user.slack_id,
+      "Slack Username" => user.slack_username,
+      "Email" => user.email,
+      "Projects" => user.projects,
+      "Created At" => user.created_at&.iso8601
     }
   end
 end
