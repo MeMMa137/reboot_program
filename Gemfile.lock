@@ -194,6 +194,8 @@ GEM
       racc (~> 1.4)
     nokogiri (1.19.0-arm-linux-musl)
       racc (~> 1.4)
+    nokogiri (1.19.0-arm64-darwin)
+      racc (~> 1.4)
     nokogiri (1.19.0-x86_64-linux-gnu)
       racc (~> 1.4)
     nokogiri (1.19.0-x86_64-linux-musl)
@@ -272,7 +274,7 @@ GEM
       minitest
       nokogiri (>= 1.6)
     rails-html-sanitizer (1.6.2)
-      loofah (>= 2.21)
+      loofah (~> 2.21)
       nokogiri (>= 1.15.7, != 1.16.7, != 1.16.6, != 1.16.5, != 1.16.4, != 1.16.3, != 1.16.2, != 1.16.1, != 1.16.0.rc1, != 1.16.0)
     railties (8.0.4)
       actionpack (= 8.0.4)
@@ -353,11 +355,12 @@ GEM
     thor (1.4.0)
     thruster (0.1.17)
     thruster (0.1.17-aarch64-linux)
+    thruster (0.1.17-arm64-darwin)
     thruster (0.1.17-x86_64-linux)
     timeout (0.6.0)
     tsort (0.2.0)
     tzinfo (2.0.6)
-      concurrent-ruby (>= 1.0)
+      concurrent-ruby (~> 1.0)
     unicode-display_width (3.2.0)
       unicode-emoji (~> 4.1)
     unicode-emoji (4.2.0)
@@ -376,6 +379,7 @@ PLATFORMS
   aarch64-linux-musl
   arm-linux-gnu
   arm-linux-musl
+  arm64-darwin-24
   x86_64-linux-gnu
   x86_64-linux-musl
 
