@@ -46,7 +46,7 @@ class AdminController < ActionController::Base
 
   def require_admin
     unless session[:user_id]
-      redirect_to signin_path
+      redirect_to root_path
       return
     end
 

@@ -8,7 +8,7 @@ class SessionsController < ActionController::Base
     auth = request.env["omniauth.auth"]
 
     if auth.nil?
-      redirect_to signin_path, flash: { error: "Authentication failed" }
+      redirect_to root_path, flash: { error: "Authentication failed" }
       return
     end
 
@@ -24,7 +24,7 @@ class SessionsController < ActionController::Base
   # GET /auth/failure
   # OmniAuth failure callback.
   def failure
-    redirect_to signin_path, flash: { error: "Authentication failed: #{params[:message]}" }
+    redirect_to root_path, flash: { error: "Authentication failed: #{params[:message]}" }
   end
 
   private
