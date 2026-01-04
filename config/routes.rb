@@ -38,6 +38,7 @@ Rails.application.routes.draw do
       # Projects
       resources :projects do
         post :request_review, on: :member
+        resources :journal_entries, only: [ :index, :show, :create, :update, :destroy ]
       end
 
       # Shop
@@ -46,8 +47,8 @@ Rails.application.routes.draw do
 
       # Admin endpoints
       namespace :admin do
-        resources :users, only: [:index, :show, :update, :destroy]
-        resources :shop_orders, only: [:index, :show, :update]
+        resources :users, only: [ :index, :show, :update, :destroy ]
+        resources :shop_orders, only: [ :index, :show, :update ]
       end
     end
   end

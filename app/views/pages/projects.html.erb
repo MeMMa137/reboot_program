@@ -283,12 +283,15 @@
 </style>
 
 <script>
+  const PROJECT_ID = <%= @selected_project&.id || 'null' %>;
+  
   // Journal Modal handlers
   const journalBtn = document.getElementById('journal-btn');
   const quickJournalBtn = document.getElementById('quick-journal-btn');
   const journalModal = document.getElementById('journal-modal');
   const journalForm = document.getElementById('journal-form');
   const journalSubmitBtn = document.getElementById('journal-submit-btn');
+  const journalEntriesList = document.getElementById('journal-entries-list');
   
   function openJournalModal() {
     journalModal?.classList.remove('modal--hidden');
@@ -307,17 +310,105 @@
   });
   
   journalModal?.querySelector('.modal__backdrop')?.addEventListener('click', closeJournalModal);
-  
-  journalSubmitBtn?.addEventListener('click', (e) => {
+
+  // Renders a single journal entry as HTML.
+  function renderJournalEntry(entry) {
+    const date = new Date(entry.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    const toolsHtml = entry.tools ? `<p class="journal-entry__tools muted"><strong>Tools:</strong> ${escapeHtml(entry.tools)}</p>` : '';
+    return `
+      <div class="journal-entry" data-id="${entry.id}">
+        <div class="journal-entry__header">
+          <span class="journal-entry__date">${date}</span>
+          <span class="journal-entry__hours">${entry.hours}h</span>
+        </div>
+        <p class="journal-entry__content">${escapeHtml(entry.content)}</p>
+        ${toolsHtml}
+      </div>
+    `;
+  }
+
+  // Escapes HTML to prevent XSS.
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  // Loads journal entries from the API and renders them.
+  async function loadJournalEntries() {
+    if (!PROJECT_ID || !journalEntriesList) return;
+    
+    try {
+      const response = await fetch(`/api/v1/projects/${PROJECT_ID}/journal_entries`, {
+        headers: { 'Accept': 'application/json' },
+        credentials: 'same-origin'
+      });
+      
+      if (!response.ok) return;
+      
+      const data = await response.json();
+      const entries = data.journal_entries || [];
+      
+      if (entries.length === 0) {
+        journalEntriesList.innerHTML = '<p class="muted">No journal entries yet. <button type="button" id="quick-journal-btn" class="link-btn">Add one</button>.</p>';
+        document.getElementById('quick-journal-btn')?.addEventListener('click', openJournalModal);
+      } else {
+        journalEntriesList.innerHTML = entries.map(renderJournalEntry).join('');
+      }
+    } catch (error) {
+      console.error('Failed to load journal entries:', error);
+    }
+  }
+
+  // Submits a new journal entry to the API.
+  journalSubmitBtn?.addEventListener('click', async (e) => {
     e.preventDefault();
+    
     const date = document.getElementById('journal_date').value;
     const hours = document.getElementById('journal_hours').value;
     const content = document.getElementById('journal_content').value;
+    const tools = document.getElementById('journal_tools').value;
     
-    if (date && hours && content) {
-      alert('DEV - Journal entry saved!');
-      journalForm?.reset();
-      closeJournalModal();
+    if (!date || !hours || !content) {
+      alert('Please fill in all required fields.');
+      return;
+    }
+    
+    journalSubmitBtn.disabled = true;
+    journalSubmitBtn.textContent = 'Saving...';
+    
+    try {
+      const response = await fetch(`/api/v1/projects/${PROJECT_ID}/journal_entries`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content
+        },
+        credentials: 'same-origin',
+        body: JSON.stringify({
+          journal_entry: { date, hours: parseFloat(hours), content, tools }
+        })
+      });
+      
+      if (response.ok) {
+        journalForm?.reset();
+        closeJournalModal();
+        loadJournalEntries();
+        window.location.reload();
+      } else {
+        const data = await response.json();
+        alert(data.errors?.join(', ') || 'Failed to save journal entry.');
+      }
+    } catch (error) {
+      console.error('Failed to save journal entry:', error);
+      alert('Failed to save journal entry. Please try again.');
+    } finally {
+      journalSubmitBtn.disabled = false;
+      journalSubmitBtn.textContent = 'Save Journal Entry';
     }
   });
+
+  // Load entries on page load.
+  document.addEventListener('DOMContentLoaded', loadJournalEntries);
 </script>

@@ -1,6 +1,7 @@
 # Represents a user's project submission.
 class Project < ApplicationRecord
   belongs_to :user
+  has_many :journal_entries, dependent: :destroy
 
   STATUSES = %w[pending in-review approved rejected].freeze
   BOLTS_PER_HOUR = 10
