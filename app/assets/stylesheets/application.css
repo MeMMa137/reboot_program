@@ -1,17 +1,18 @@
 @import url('https://fonts.googleapis.com/css2?family=Permanent+Marker&family=Crimson+Pro:ital,wght@0,400;1,400&display=swap');
 
 :root {
-  --bg: #7d88a5;
+  --bg: #f9f9f7;
   --bg-dark: #6f7a97;
-  --paper: #d8ccb4;
-  --paper-alt: #cbb495;
+  --paper: #ffffff;
+  --paper-alt: #f5f5f3;
   --ink: #1f2430;
-  --ink-muted: #3a4153;
+  --ink-muted: #6b7280;
   --accent: #f25f2c;
   --gold: #d6a161;
-  --nav: #d5a26b;
+  --nav: #ffffff;
   --white: #fff;
-  --shadow: rgba(0, 0, 0, 0.12);
+  --shadow: rgba(0, 0, 0, 0.08);
+  --border: #e5e7eb;
 }
 
 * {
@@ -75,8 +76,11 @@ body {
 
 /* Containers */
 .container {
-  width: min(1200px, 95vw);
-  margin: 18px auto;
+   width: min(1200px, 95vw);
+   margin: 18px auto;
+}
+.container > .card {
+   margin-top: 32px;
 }
 .container--center {
   display: flex;
@@ -91,9 +95,10 @@ body {
   box-shadow: 0 6px 14px var(--shadow);
 }
 .page-title {
-  font-size: 44px;
-  font-weight: 900;
-  margin: 12px 6px 20px;
+   font-size: 32px;
+   font-weight: 700;
+   margin: 0;
+   padding: 20px 20px 0;
 }
 
 /* Projects grid */

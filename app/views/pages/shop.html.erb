@@ -4,7 +4,10 @@
 <%= render "shared/navbar" %>
 
 <main class="container">
-  <h1 class="page-title">Shop</h1>
+  <div style="display: flex; justify-content: space-between; align-items: center;">
+    <h1 class="page-title">Shop</h1>
+    <a href="/purchases" class="btn btn--secondary">Recent Purchases</a>
+  </div>
   
   <% if @shop_items.any? %>
     <div class="shop-grid">
