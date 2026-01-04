@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Reboot Backend Tester</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <style>
+      .tester-grid { display: grid; gap: 12px; grid-template-columns: 1fr 1fr; }
+      @media (max-width: 980px) { .tester-grid { grid-template-columns: 1fr; } }
+      .panel { background:#fffdf9; border:1px solid #b8b6b1; border-radius:12px; padding:12px; }
+      .row { display:flex; gap:8px; align-items:center; margin:6px 0; flex-wrap: wrap; }
+      .row label { font-weight:700; min-width: 120px; }
+      .row input[type="text"], .row input[type="number"] { flex:1 1 220px; padding:8px 10px; border-radius:10px; border:1px solid #b8b6b1; }
+      .output { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; white-space: pre-wrap; background:#0f172a; color:#e2e8f0; border-radius:12px; padding:12px; min-height:140px; }
+      .ok { color:#10b981; font-weight:800; }
+      .err { color:#ef4444; font-weight:800; }
+      .btn-small { padding:8px 12px; border-radius:10px; }
+    </style>
+  </head>
+  <body data-page="tester">
+    <div class="container">
+      <div class="topbar">
+        <nav class="nav">
+          <a class="nav__item" href="./signin.html">Signin</a>
+          <a class="nav__item" href="./projects.html">Projects</a>
+          <a class="nav__item nav__item--active" href="./test.html">Backend Tester</a>
+        </nav>
+        <div class="topbar__right">
+          <span class="coins">Tester</span>
+        </div>
+      </div>
+
+      <h1 class="page-title">Backend Tester</h1>
+
+      <div class="tester-grid">
+        <div class="panel">
+          <h3 class="section-title">Setup</h3>
+          <div class="row">
+            <label for="base-url">Backend URL</label>
+            <input id="base-url" type="text" value="http://localhost:3001" />
+            <button id="btn-health" class="btn btn--primary btn-small">Health check</button>
+          </div>
+          <div class="row">
+            <label for="jwt">JWT</label>
+            <input id="jwt" type="text" placeholder="Paste JWT here" />
+            <button id="btn-save-jwt" class="btn btn-small">Use JWT</button>
+          </div>
+          <div class="row">
+            <label for="hca">HCA Token</label>
+            <input id="hca" type="text" placeholder="Optional: Hack Club access token" />
+            <button id="btn-exchange" class="btn btn--accent btn-small">Exchange token</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3 class="section-title">Projects</h3>
+          <div class="row">
+            <button id="btn-projects" class="btn btn-small">List projects</button>
+          </div>
+          <div class="row">
+            <input id="proj-name" type="text" placeholder="Name" />
+            <input id="proj-desc" type="text" placeholder="Description" />
+            <input id="proj-hours" type="number" placeholder="Hours" />
+            <button id="btn-create" class="btn btn--primary btn-small">Create</button>
+          </div>
+          <div class="row">
+            <input id="proj-id" type="text" placeholder="Project ID" />
+            <button id="btn-request" class="btn btn--accent btn-small">Request review</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3 class="section-title">Shop</h3>
+          <div class="row">
+            <button id="btn-items" class="btn btn-small">List items</button>
+          </div>
+          <div class="row">
+            <input id="item-id" type="text" placeholder="Item ID" />
+            <button id="btn-purchase" class="btn btn--primary btn-small">Purchase</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3 class="section-title">Output</h3>
+          <div id="out" class="output">Ready.</div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        const out = document.getElementById("out");
+        const baseUrlInput = document.getElementById("base-url");
+        const jwtInput = document.getElementById("jwt");
+
+        const store = {
+          get baseUrl() {
+            try { return localStorage.getItem("tester.baseUrl") || baseUrlInput.value; } catch { return baseUrlInput.value; }
+          },
+          set baseUrl(v) { try { localStorage.setItem("tester.baseUrl", v); } catch {} },
+          get jwt() {
+            try { return localStorage.getItem("tester.jwt") || ""; } catch { return ""; }
+          },
+          set jwt(v) { try { localStorage.setItem("tester.jwt", v || ""); } catch {} },
+        };
+
+        baseUrlInput.value = store.baseUrl;
+        jwtInput.value = store.jwt;
+
+        function log(obj, ok = true) {
+          const prefix = ok ? "[OK]" : "[ERR]";
+          out.textContent = prefix + " " + new Date().toLocaleTimeString() + "\\n\\n" + JSON.stringify(obj, null, 2);
+        }
+
+        function headers() {
+          const h = { "Content-Type": "application/json" };
+          const token = store.jwt;
+          if (token) h["Authorization"] = "Bearer " + token;
+          return h;
+        }
+
+        async function get(path) {
+          const res = await fetch(store.baseUrl + path, { headers: headers(), credentials: "include" });
+          const text = await res.text();
+          try { return { status: res.status, json: JSON.parse(text) }; } catch { return { status: res.status, text }; }
+        }
+
+        async function post(path, body) {
+          const res = await fetch(store.baseUrl + path, { method: "POST", headers: headers(), body: JSON.stringify(body || {}), credentials: "include" });
+          const text = await res.text();
+          try { return { status: res.status, json: JSON.parse(text) }; } catch { return { status: res.status, text }; }
+        }
+
+        document.getElementById("btn-health").addEventListener("click", async () => {
+          store.baseUrl = baseUrlInput.value.trim();
+          const r = await get("/up");
+          log(r, r.status === 200);
+        });
+
+        document.getElementById("btn-save-jwt").addEventListener("click", () => {
+          store.jwt = jwtInput.value.trim();
+          log({ message: "JWT saved to localStorage" });
+        });
+
+        document.getElementById("btn-exchange").addEventListener("click", async () => {
+          store.baseUrl = baseUrlInput.value.trim();
+          const token = document.getElementById("hca").value.trim();
+          const r = await post("/api/v1/auth/token", { access_token: token });
+          if (r.json && r.json.token) {
+            store.jwt = r.json.token;
+            jwtInput.value = r.json.token;
+          }
+          log(r, r.status >= 200 && r.status < 300);
+        });
+
+        document.getElementById("btn-projects").addEventListener("click", async () => {
+          const r = await get("/api/v1/projects");
+          log(r, r.status === 200);
+        });
+
+        document.getElementById("btn-create").addEventListener("click", async () => {
+          const name = document.getElementById("proj-name").value.trim() || "Test Project";
+          const description = document.getElementById("proj-desc").value.trim() || "Created from tester";
+          const hours = parseFloat(document.getElementById("proj-hours").value) || 1;
+          const r = await post("/api/v1/projects", { project: { name, description, hours } });
+          log(r, r.status === 201 || r.status === 200);
+        });
+
+        document.getElementById("btn-request").addEventListener("click", async () => {
+          const id = document.getElementById("proj-id").value.trim();
+          const r = await post(`/api/v1/projects/${encodeURIComponent(id)}/request_review`, {});
+          log(r, r.status === 200);
+        });
+
+        document.getElementById("btn-items").addEventListener("click", async () => {
+          const r = await get("/api/v1/shop/items");
+          log(r, r.status === 200);
+        });
+
+        document.getElementById("btn-purchase").addEventListener("click", async () => {
+          const id = document.getElementById("item-id").value.trim();
+          const r = await post("/api/v1/shop/purchase", { item_id: id });
+          log(r, r.status === 201);
+        });
+      })();
+    </script>
+  </body>
+  </html>
+
+
