@@ -4,12 +4,12 @@ class PagesController < ActionController::Base
   layout "application"
 
   # GET /
-  # Redirects to projects if authenticated, signin otherwise.
+  # Redirects to projects if authenticated, renders signin otherwise.
   def home
     if session[:user_id]
       redirect_to projects_path
     else
-      redirect_to signin_path
+      render :signin
     end
   end
 
@@ -24,13 +24,13 @@ class PagesController < ActionController::Base
   # Shows the user's projects. Requires authentication.
   def projects
     unless session[:user_id]
-      redirect_to signin_path and return
+      redirect_to root_path and return
     end
 
     @current_user = User.find_by(id: session[:user_id])
     unless @current_user
       session.delete(:user_id)
-      redirect_to signin_path and return
+      redirect_to root_path and return
     end
 
     @projects = @current_user.projects.order(created_at: :desc)
@@ -128,7 +128,7 @@ class PagesController < ActionController::Base
   def signout
     session.delete(:user_id)
     session.delete(:jwt)
-    redirect_to signin_path, notice: "Signed out successfully"
+    redirect_to root_path, notice: "Signed out successfully"
   end
 
   private
@@ -138,14 +138,14 @@ class PagesController < ActionController::Base
   # @return [Boolean] true if authenticated
   def require_auth
     unless session[:user_id]
-      redirect_to signin_path
+      redirect_to root_path
       return false
     end
 
     @current_user = User.find_by(id: session[:user_id])
     unless @current_user
       session.delete(:user_id)
-      redirect_to signin_path
+      redirect_to root_path
       return false
     end
 

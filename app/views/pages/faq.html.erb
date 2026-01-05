@@ -5,18 +5,131 @@
 
 <main class="container">
   <h1 class="page-title">FAQ</h1>
-  <div class="card">
-    <div class="faq-item">
-      <h3>What is Reboot?</h3>
-      <p class="muted">Reboot is a Hack Club program where you build projects, log hours, and earn screws to spend in the shop.</p>
+
+  <section class="faq-section card">
+    <h2 class="faq-section__title">Frequently Asked Questions</h2>
+    <div class="faq-qa">
+      <div class="faq-item">
+        <h3 class="faq-item__question">Can i work on multiple projects at once?</h3>
+        <p class="faq-item__answer">Yes</p>
+      </div>
+      <div class="faq-item">
+        <h3 class="faq-item__question">If I'm working on both software and hardware, do I need to submit two separate projects?</h3>
+        <p class="faq-item__answer">No, create a new project like Hackatime, click on it once created, add new journaling logs in the upper right hand corner</p>
+      </div>
+      <div class="faq-item">
+        <h3 class="faq-item__question">Can I collab with my friends and make a single project?</h3>
+        <p class="faq-item__answer">Yes BUT: 1. You can work on the same repo but in different forks 2. your hours will be obv counted separately</p>
+      </div>
     </div>
-    <div class="faq-item">
-      <h3>How do I earn screws?</h3>
-      <p class="muted">Submit your projects for review. Once approved, your logged hours are converted to screws.</p>
-    </div>
-    <div class="faq-item">
-      <h3>What can I spend screws on?</h3>
-      <p class="muted">Check out the shop for cool hardware, stickers, and other goodies!</p>
-    </div>
-  </div>
+  </section>
+
+  <section class="faq-section card">
+    <h2 class="faq-section__title">Rules</h2>
+    <ul class="faq-list">
+      <li>AI accepted limited as support, must not exceed 30% of total project</li>
+      <li>Follow the <a href="#tracking" class="link">Tracking System</a> correctly</li>
+      <li>No Double-dipping with other programs</li>
+      <li>No <span class="highlight">FRAUD</span></li>
+    </ul>
+  </section>
+
+  <section class="faq-section card">
+    <h2 class="faq-section__title">Requirements to Ship</h2>
+    <ul class="faq-list">
+      <li>GitHub opensource page with frequent commits (every 30min - 1h)</li>
+      <li><a href="#tracking" class="link">Tracking system</a> mandatory</li>
+      <li>Live Demo working</li>
+      <li>A proof (screenshot / short video / whatever) to show the improvement</li>
+    </ul>
+  </section>
 </main>
+
+<style>
+  .faq-section {
+    margin-bottom: 2rem;
+    border-radius: 12px;
+  }
+
+  .faq-section__title {
+    color: #8b5cf6;
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin: 0 0 1.5rem 0;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #f0f0f0;
+  }
+
+  .faq-qa {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .faq-item {
+    padding: 1rem 0;
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  .faq-item:last-child {
+    border-bottom: none;
+  }
+
+  .faq-item__question {
+    color: #1f2430;
+    font-size: 1rem;
+    font-weight: 700;
+    margin: 0 0 0.5rem 0;
+    line-height: 1.4;
+  }
+
+  .faq-item__answer {
+    color: #6b7280;
+    font-size: 0.95rem;
+    margin: 0;
+    line-height: 1.6;
+  }
+
+  .faq-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .faq-list li {
+    color: #1f2430;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    padding-left: 1.75rem;
+    position: relative;
+  }
+
+  .faq-list li:before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    color: #8b5cf6;
+    font-weight: bold;
+    font-size: 1.2rem;
+  }
+
+  .link {
+    color: #8b5cf6;
+    text-decoration: none;
+    font-weight: 600;
+    transition: opacity 0.2s ease;
+  }
+
+  .link:hover {
+    opacity: 0.8;
+    text-decoration: underline;
+  }
+
+  .highlight {
+    color: #8b5cf6;
+    font-weight: 700;
+  }
+</style>
