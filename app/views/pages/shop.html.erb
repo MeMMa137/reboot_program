@@ -4,210 +4,146 @@
 <%= render "shared/navbar" %>
 
 <main class="container">
-  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
     <h1 class="page-title" style="margin: 0;">Shop</h1>
     <a href="/purchases" class="btn btn--secondary">Recent Purchases</a>
   </div>
 
-  <div style="display: grid; grid-template-columns: 250px 1fr; gap: 2rem;">
-    <aside class="shop-sidebar card">
-      <h3 style="margin: 0 0 1rem 0; color: #1f2430; font-size: 1.1rem;">Categories</h3>
-      
-      <div style="display: flex; flex-direction: column; gap: 0.75rem;">
-        <button class="shop-category-btn shop-category-btn--active" data-category="all">
-          All Items
-        </button>
-        <button class="shop-category-btn" data-category="economic">
-          Economic
-        </button>
-        <button class="shop-category-btn" data-category="standard">
-          Standard
-        </button>
-        <button class="shop-category-btn" data-category="quality">
-          Quality
-        </button>
-        <button class="shop-category-btn" data-category="advanced">
-          Advanced
-        </button>
-        <button class="shop-category-btn" data-category="professional">
-          Professional
-        </button>
-      </div>
+  <div class="shop-layout">
+    <aside class="shop-categories card">
+      <h3 class="shop-heading">Category</h3>
+      <ul class="shop-category-list">
+        <% categories = [ "Keyboard", "Mouse", "Monitor", "Headphones", "Webcam" ] %>
+        <% categories.each_with_index do |cat, idx| %>
+          <li>
+            <button class="shop-category-item <%= 'is-active' if idx == 0 %>" data-target="cat-<%= cat.downcase %>">
+              <%= cat %>
+            </button>
+          </li>
+        <% end %>
+      </ul>
     </aside>
 
-    <section>
-      <h2 style="margin: 0 0 1.5rem 0; color: #1f2430;">Items</h2>
-
-      <% if @shop_items.any? %>
-        <div class="shop-grid">
-          <% @shop_items.each do |item| %>
-            <div class="shop-card card" data-id="<%= item.id %>" data-cost="<%= item.cost %>" data-category="<%= item.status || 'standard' %>">
-              <% if item.image_url.present? %>
-                <img class="shop-card__image" src="<%= item.image_url %>" alt="<%= item.name %>">
-              <% else %>
-                <div class="shop-card__image shop-card__image--placeholder">🪛</div>
-              <% end %>
-              
-              <div class="shop-card__body">
-                <h3 class="shop-card__title"><%= item.name.presence || "Unnamed Item" %></h3>
-                <p class="shop-card__description muted"><%= item.description.presence || "No description" %></p>
-                
-                <% item_cost = item.cost || 0 %>
-                <div class="shop-card__footer">
-                  <div>
-                    <span class="shop-card__price"><%= item_cost.to_i %> 🪛</span>
-                    <% if item.status.present? %>
-                      <span class="pill" style="background: #e8f0e8; color: #4a7c59; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; margin-left: 0.5rem;">
-                        <%= item.status.capitalize %>
-                      </span>
-                    <% end %>
-                  </div>
-                  <%= form_with url: purchase_path, method: :post, local: true, class: "purchase-form" do %>
-                    <input type="hidden" name="item_id" value="<%= item.id %>">
-                    <button type="submit" class="btn btn--primary"
-                            <%= 'disabled' if @current_user.balance < item_cost %>>
-                      <%= @current_user.balance >= item_cost ? 'Purchase' : 'Not enough screws' %>
-                    </button>
-                  <% end %>
-                </div>
-              </div>
-            </div>
-          <% end %>
+    <section class="shop-items card">
+      <div class="shop-items__header">
+        <h2 class="shop-heading" style="margin: 0;">Items</h2>
+        <div aria-hidden="true" class="shop-cart">
+          <img src="https://files.slack.com/files-pri/T09V59WQY1E-F0A793FGJ2V/bolt.png?pub_secret=7acc4044c5" alt="bolts" class="bolt-icon">
         </div>
-      <% else %>
-        <div class="card" style="text-align: center; padding: 40px;">
-          <p class="muted">No items in the shop yet. Check back soon!</p>
+      </div>
+
+      <% categories.each_with_index do |cat, idx| %>
+        <% item = @shop_items.find { |i| i.name.to_s.downcase.strip == cat.downcase } %>
+        <% base_cost = (item&.cost || 0).to_i %>
+        <div id="cat-<%= cat.downcase %>" class="shop-item-detail <%= 'is-active' if idx == 0 %>">
+          <div class="shop-item-detail__variants">
+            <% variants = [
+              ['Standard grant', 'standard'],
+              ['Quality grant', 'quality'],
+              ['Advanced grant', 'advanced'],
+              ['Professional grant', 'professional']
+            ] %>
+            <% images_for_keyboard = [
+              'https://files.slack.com/files-pri/T09V59WQY1E-F0A6SJ1AQAH/vecteezy_keyboard-3d-rendering-icon-illustration_28606613.png?pub_secret=9418a400cb',
+              'https://files.slack.com/files-pri/T09V59WQY1E-F0A6SHUUGN9/vecteezy_gaming-keyboard-with-anti-ghosting-technology-transparent_57571865.png?pub_secret=2fe417ad9b',
+              'https://files.slack.com/files-pri/T09V59WQY1E-F0A7QABPARW/vecteezy_rgb-illuminated-white-gaming-keyboard-top-view_52855142.png?pub_secret=3d3c0544c6',
+              'https://files.slack.com/files-pri/T09V59WQY1E-F0A6EHQKAUF/vecteezy_white-rgb-mechanical-gaming-keyboard-with-cable_52855199.png?pub_secret=3e689005bb'
+            ] if cat == 'Keyboard' %>
+            <% images_for_mouse = [
+              'https://files.slack.com/files-pri/T09V59WQY1E-F0A7QDJR56C/vecteezy_computer-mouse-isolated-on-a-transparent-background_47833235.png?pub_secret=206f7975e4',
+              'https://files.slack.com/files-pri/T09V59WQY1E-F0A6PNNB8HH/vecteezy_ai-generated-computer-mouse-png-isolated-on-transparent_36113136.png?pub_secret=5328baa9cd',
+              'https://files.slack.com/files-pri/T09V59WQY1E-F0A6ZMVP5RA/vecteezy_ai-generated-computer-mouse-png-isolated-on-transparent_36112700.png?pub_secret=4a6941278c',
+              'https://files.slack.com/files-pri/T09V59WQY1E-F0A6ELUDWQP/vecteezy_ai-generated-computer-mouse-png-isolated-on-transparent_36112693.png?pub_secret=8a1b07b884'
+            ] if cat == 'Mouse' %>
+            <% images_for_monitor = [
+              'https://files.slack.com/files-pri/T09V59WQY1E-F0A793DR88Z/10740609.png?pub_secret=edffb80446',
+              'https://files.slack.com/files-pri/T09V59WQY1E-F0A6ZNZN99A/3d-monitor-curved-free-png.webp?pub_secret=9d8649f57c',
+              'https://files.slack.com/files-pri/T09V59WQY1E-F0A6W5FN41Y/vecteezy_3d-monitor-for-office_53739745.png?pub_secret=6a16537f48',
+              'https://files.slack.com/files-pri/T09V59WQY1E-F0A6EN1NVP1/vecteezy_sleek-black-computer-monitor-with-vibrant-red-abstract_56609224.png?pub_secret=5e30e2cd74'
+            ] if cat == 'Monitor' %>
+            <% variants.each_with_index do |(label_text, key), variant_idx| %>
+              <% img_src = (
+                (cat == 'Keyboard' && images_for_keyboard && images_for_keyboard[variant_idx]) ||
+                (cat == 'Mouse' && images_for_mouse && images_for_mouse[variant_idx]) ||
+                (cat == 'Monitor' && images_for_monitor && images_for_monitor[variant_idx]) ||
+                '/images/signin/hackclub.svg'
+              ) %>
+              <% amount_map = { 'standard' => 50, 'quality' => 110, 'advanced' => 170, 'professional' => 230 } %>
+              <% grant_amount = amount_map[key] || 0 %>
+              <% bolts_map = { 'standard' => 500, 'quality' => 1100, 'advanced' => 1700, 'professional' => 2300 } %>
+              <% base_bolts = bolts_map[key] || 0 %>
+              <% price = base_bolts %>
+              <% desc_text = "This item provide a #{grant_amount}$ HCB card grant to spend on a #{cat}" %>
+              <div class="shop-variant">
+                <div class="shop-variant__thumb">
+                  <img src="<%= img_src %>" alt="<%= label_text %>">
+                </div>
+
+                <div class="shop-variant__name"><%= label_text %></div>
+
+                <div class="shop-variant__meta">
+                  <button type="button"
+                          class="shop-variant__priceBox price-btn"
+                          data-item-id="<%= item&.id %>"
+                          data-name="<%= cat %>"
+                          data-variant="<%= key %>"
+                          data-display="<%= label_text %>"
+                          data-price="<%= price %>"
+                          data-grant="<%= grant_amount %>"
+                          data-bolts="<%= base_bolts %>"
+                          data-img="<%= img_src %>"
+                          data-desc="<%= desc_text.to_s.gsub('\"','&quot;') %>">
+                    <span class="shop-variant__price"><%= price %></span>
+                    <img src="https://files.slack.com/files-pri/T09V59WQY1E-F0A793FGJ2V/bolt.png?pub_secret=7acc4044c5" alt="bolts" class="bolt-icon">
+                  </button>
+                  <span class="shop-variant__pill shop-variant__pill--<%= key %>"><%= label_text %></span>
+                </div>
+
+                <!-- Purchase action moved to modal -->
+              </div>
+            <% end %>
+          </div>
         </div>
       <% end %>
     </section>
   </div>
+  <div class="card" style="margin-top: 12px; background: #fff3cd; border: 1px solid #ffeeba; color: #856404; padding: 10px; text-align: center;">
+    Working progress! We're building the shop page, more items will be added soon!
+  </div>
 </main>
 
-<style>
-  .shop-sidebar {
-    height: fit-content;
-    position: sticky;
-    top: 20px;
-  }
-
-  .shop-category-btn {
-    background: #f5f5f3;
-    border: none;
-    color: #1f2430;
-    padding: 12px 16px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 0.95rem;
-    transition: all 0.2s ease;
-    text-align: left;
-  }
-
-  .shop-category-btn:hover {
-    background: #efefeb;
-  }
-
-  .shop-category-btn--active {
-    background: #d6a161;
-    color: white;
-  }
-
-  .shop-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 1.5rem;
-  }
-
-  .shop-card {
-    padding: 0;
-    overflow: hidden;
-  }
-
-  .shop-card__image {
-    width: 100%;
-    height: 200px;
-    object-fit: cover;
-  }
-
-  .shop-card__image--placeholder {
-    width: 100%;
-    height: 200px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #f0f0f0;
-    font-size: 4rem;
-  }
-
-  .shop-card__body {
-    padding: 1rem;
-  }
-
-  .shop-card__title {
-    margin: 0 0 0.5rem 0;
-    font-size: 1rem;
-    color: #1f2430;
-  }
-
-  .shop-card__description {
-    margin: 0 0 1rem 0;
-    font-size: 0.9rem;
-    line-height: 1.4;
-  }
-
-  .shop-card__footer {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    margin-top: 1rem;
-    padding-top: 1rem;
-    border-top: 1px solid #f0f0f0;
-  }
-
-  .shop-card__price {
-    font-weight: 700;
-    color: #f25f2c;
-    font-size: 1.1rem;
-  }
-
-  .purchase-form {
-    display: contents;
-  }
-
-  @media (max-width: 768px) {
-    main.container {
-      display: block !important;
-    }
-
-    .shop-sidebar {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-      gap: 0.5rem;
-      position: static;
-      margin-bottom: 2rem;
-    }
-  }
-</style>
-
-<script>
-  const categoryBtns = document.querySelectorAll('.shop-category-btn');
-  const shopCards = document.querySelectorAll('.shop-card');
-
-  categoryBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      categoryBtns.forEach(b => b.classList.remove('shop-category-btn--active'));
-      btn.classList.add('shop-category-btn--active');
-
-      const selectedCategory = btn.dataset.category;
-
-      shopCards.forEach(card => {
-        const cardCategory = card.dataset.category;
-        if (selectedCategory === 'all' || cardCategory === selectedCategory) {
-          card.style.display = 'block';
-        } else {
-          card.style.display = 'none';
-        }
-      });
-    });
-  });
-</script>
+<!-- Item Modal -->
+<div id="shop-item-modal" class="modal modal--hidden" data-user-balance="<%= @current_user.balance.to_i %>">
+  <div class="modal__backdrop"></div>
+  <div class="modal__content card">
+    <div class="modal__header">
+      <h3 id="shop-modal-title" class="modal__title">Item</h3>
+      <button type="button" class="modal__close" aria-label="Close">&times;</button>
+    </div>
+    <div class="shop-modal__body">
+      <img id="shop-modal-image" class="shop-modal__image" src="/images/signin/hackclub.svg" alt="item">
+      <p id="shop-modal-desc" class="shop-modal__desc muted">Description</p>
+      <div class="shop-modal__qty" style="display:flex;align-items:center;gap:8px;">
+        <label for="shop-modal-qty" class="muted">Quantity</label>
+        <input id="shop-modal-qty" type="number" min="1" step="1" value="1" style="width:80px;">
+      </div>
+      <div class="shop-modal__price">
+        <span id="shop-modal-price">0</span>
+        <img src="https://files.slack.com/files-pri/T09V59WQY1E-F0A793FGJ2V/bolt.png?pub_secret=7acc4044c5" alt="bolts" class="bolt-icon">
+      </div>
+      <div id="shop-modal-warning" style="display:none;background:#fdecea;border:1px solid #f5c2c7;color:#842029;padding:8px 12px;border-radius:8px;">
+        Not enough bolts to purchase. You need <strong><span id="shop-modal-shortage">0</span></strong> more.
+      </div>
+      <%= form_with url: purchase_path, method: :post, local: true, id: "shop-modal-form" do %>
+        <input type="hidden" name="item_id" id="shop-modal-item-id" value="">
+        <input type="hidden" name="variant" id="shop-modal-variant" value="">
+        <button id="shop-modal-buy" type="submit" class="btn btn--primary btn--block">Purchase</button>
+      <% end %>
+    </div>
+  </div>
+  <style>
+    .shop-modal__body { display: grid; gap: 12px; }
+    .shop-modal__image { width: 100%; height: 180px; border-radius: 10px; object-fit: cover; background: var(--paper-alt); }
+    .shop-modal__price { display: inline-flex; align-items: center; gap: 8px; background: #efd1a4; padding: 8px 12px; border-radius: 12px; width: fit-content; }
+  </style>
+</div>
