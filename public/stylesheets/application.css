@@ -905,7 +905,8 @@ a.project-row:hover {
 
 /* Signin Page */
 [data-page="signin"] {
-  background: transparent;
+  background: var(--bg) url('/images/signin/background.PNG') no-repeat center center fixed;
+  background-size: cover;
   min-height: 100vh;
   overflow: hidden;
 }
@@ -923,8 +924,8 @@ a.project-row:hover {
 .signin-flag {
   position: absolute;
   top: 16px;
-  left: 16px;
-  width: 120px;
+  left: 0px;
+  width: 200px;
   z-index: 10;
 }
 
@@ -938,14 +939,21 @@ a.project-row:hover {
 }
 
 .signin-crane-text {
-   width: clamp(300px, 80vw, 800px);
+   width: clamp(550px, 90vw, 1100px);
    height: auto;
-   margin-bottom: 20px;
+   margin-bottom: 0px;
    order: 1;
 }
 
+/* Start button image */
+.signin-start-img {
+  width: clamp(100px, 22vw, 200px);
+  height: auto;
+}
+
 .signin-content form {
-   order: 4;
+   order: 2;
+   margin-top: -150px;
 }
 
 .signin-subtitle {
@@ -967,7 +975,7 @@ a.project-row:hover {
    color: #000;
    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
    transition: transform 0.2s;
-   margin-top: 16px;
+   margin-top: 0;
 }
 
 .signin-btn:hover {
@@ -978,7 +986,7 @@ a.project-row:hover {
    position: absolute;
    bottom: 0;
    left: 0;
-   width: clamp(150px, 20vw, 280px);
+   width: clamp(400px, 20vw, 280px);
    z-index: 2;
 }
 
