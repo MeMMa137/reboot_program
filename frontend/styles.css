@@ -1,30 +1,31 @@
 @font-face {
-  font-family: 'Jolly Lodger';
-  src: url('@fonts/Jolly_Lodger/JollyLodger-Regular.ttf') format('truetype');
+  font-family: "Jolly_Lodger";
+  src: url("/Jolly_Lodger/Jolly_Lodger/JollyLodger-Regular.ttf") format("truetype");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
+
 @font-face {
-  font-family: 'Jim Nightshade';
-  src: url('@fonts/Jim_Nightshade/JimNightshade-Regular.ttf') format('truetype');
+  font-family: "Jim_Nightshade";
+  src: url("/Jim_Nightshade/JimNightshade-Regular.ttf") format("truetype");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 
 :root {
-  --bg: #f5efe6;          /* light cream-beige */
-  --bg-dark: #e8dcc8;     /* deeper beige */
-  --paper: #fbf4ea;       /* card background */
-  --paper-alt: #f0e4d4;   /* alt card */
-  --ink: #3a2a18;         /* dark brown text */
-  --ink-muted: #6f5b3e;   /* muted brown text */
-  --accent: #d27f46;      /* warm accent */
-  --gold: #c8a36e;        /* secondary accent */
-  --nav: #f3e3cf;         /* navbar bg */
+  --bg: #7d88a5;
+  --bg-dark: #6f7a97;
+  --paper: #d8ccb4;
+  --paper-alt: #cbb495;
+  --ink: #1f2430;
+  --ink-muted: #3a4153;
+  --accent: #f25f2c;
+  --gold: #d6a161;
+  --nav: #d5a26b;
   --white: #fff;
-  --shadow: rgba(58, 42, 24, 0.12);
+  --shadow: rgba(0, 0, 0, 0.12);
 }
 
 * {
@@ -38,23 +39,23 @@ body {
 
 body {
   margin: 0;
-  font-family: 'Jim Nightshade', cursive;
-  color: var(--ink);
-  background: var(--bg) url('/images/signin/background.PNG') no-repeat center center fixed;
-  background-size: cover;
   font-size: 18px;
+  font-family: "Jim_Nightshade", ui-rounded, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu,
+    Cantarell, Noto Sans, "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  color: var(--ink);
+  background: var(--bg) url("/img/signin/background.PNG") center / cover no-repeat fixed;
 }
 
+/* Titles / Subtitles use Jolly_Lodger */
+h1,
+h2,
+h3,
 .page-title,
-.section-title,
 .project-row__title,
-.item-info__title,
-.modal-title,
 .project-detail__title,
-.detail-subtitle,
-.heading,
-h1, h2, h3, h4, h5, h6 {
-  font-family: 'Jolly Lodger', cursive;
+.detail-subtitle {
+  font-family: "Jolly_Lodger", ui-rounded, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu,
+    Cantarell, Noto Sans, "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
 }
 
 /* Top bar */
@@ -62,17 +63,10 @@ h1, h2, h3, h4, h5, h6 {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 20px;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  background: rgba(243, 227, 207, 0.75);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-radius: 0;
-  margin: 0;
-  border-bottom: 1px solid rgba(58, 42, 24, 0.15);
-  box-shadow: 0 8px 24px rgba(58, 42, 24, 0.12);
+  padding: 10px 16px;
+  background: var(--nav);
+  border-radius: 16px;
+  margin: 12px;
 }
 .topbar__right {
   display: flex;
@@ -87,9 +81,8 @@ h1, h2, h3, h4, h5, h6 {
   color: #221b12;
   text-decoration: none;
   font-weight: 700;
-  padding: 6px 12px;
+  padding: 6px 10px;
   border-radius: 10px;
-  transition: transform 120ms ease, background-color 160ms ease, box-shadow 160ms ease;
 }
 .nav__item[aria-disabled="true"] {
   opacity: 0.6;
@@ -97,15 +90,6 @@ h1, h2, h3, h4, h5, h6 {
 }
 .nav__item--active {
   text-decoration: underline;
-}
-.nav__item:hover {
-  transform: translateY(-1px);
-  background: rgba(58, 42, 24, 0.08);
-  box-shadow: 0 2px 6px rgba(58, 42, 24, 0.12);
-}
-.nav__item:active {
-  transform: translateY(0);
-  box-shadow: none;
 }
 .coins {
   background: #f2d39e;
@@ -136,17 +120,6 @@ h1, h2, h3, h4, h5, h6 {
   font-size: 48px;
   font-weight: 900;
   margin: 12px 6px 20px;
-}
-.page-title-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-.section-title {
-  font-size: 32px;
-  font-weight: 900;
-  margin: 6px 6px 16px;
 }
 
 /* Projects grid */
@@ -181,7 +154,7 @@ h1, h2, h3, h4, h5, h6 {
   box-shadow: 0 0 0 3px rgba(34, 27, 18, 0.12) inset;
 }
 .project-row__title {
-  font-size: 32px;
+  font-size: 30px;
   font-weight: 800;
 }
 .pill {
@@ -319,7 +292,6 @@ h1, h2, h3, h4, h5, h6 {
   border-radius: 14px;
   cursor: pointer;
   box-shadow: 0 3px 0 rgba(0, 0, 0, 0.15);
-  font-size: 16px;
 }
 .btn:hover {
   filter: brightness(0.98);

@@ -3,6 +3,30 @@ class PagesController < ActionController::Base
   # Use the application layout
   layout "application"
 
+  # GET /dev_login (development only)
+  # Creates or finds a user and logs them in without OAuth.
+  def dev_login
+    unless Rails.env.development?
+      head :not_found and return
+    end
+
+    user = User.first
+    if user.nil?
+      user = User.create!(
+        email: "dev@example.com",
+        provider: "dev",
+        uid: SecureRandom.uuid,
+        first_name: "Dev",
+        last_name: "User",
+        role: "user"
+      )
+    end
+
+    session[:user_id] = user.id
+    session[:jwt] = JwtService.encode(user_id: user.id)
+    redirect_to projects_path, notice: "Signed in as #{user.email}"
+  end
+
   # GET /
   # Redirects to projects if authenticated, renders signin otherwise.
   def home
@@ -64,19 +88,24 @@ class PagesController < ActionController::Base
     end
 
     unless project.can_request_review?
-      redirect_to projects_path(selected: project.id), flash: { error: "Project cannot be submitted for review" }
+      redirect_to projects_path(selected: project.id), flash: { error: "Project cannot be shipped" }
+      return
+    end
+
+    unless project.ready_to_ship?
+      redirect_to projects_path(selected: project.id), flash: { error: "Please fill in all required fields: description, code URL, playable URL, screenshot URL" }
       return
     end
 
     project.request_review!
-    redirect_to projects_path(selected: project.id), flash: { success: "Review requested!" }
+    redirect_to projects_path(selected: project.id), flash: { success: "Project shipped! Awaiting review." }
   end
 
   # GET /shop
   # Shows the shop page. Requires authentication.
   def shop
     require_auth or return
-    @shop_items = ShopItem.where(status: ["active", "in stock", "stock", nil, ""]).order(:cost)
+    @shop_items = ShopItem.where(status: [ "active", "in stock", "stock", nil, "" ]).order(:cost)
   end
 
   # POST /shop/purchase
@@ -84,7 +113,7 @@ class PagesController < ActionController::Base
   def purchase
     require_auth or return
 
-    item = ShopItem.where(status: ["active", "in stock", "stock", nil, ""]).find_by(id: params[:item_id])
+    item = ShopItem.where(status: [ "active", "in stock", "stock", nil, "" ]).find_by(id: params[:item_id])
 
     unless item
       redirect_to shop_path, flash: { error: "Item not found" }
@@ -153,6 +182,6 @@ class PagesController < ActionController::Base
   end
 
   def project_params
-    params.require(:project).permit(:name, :description, :code_url, :playable_url, :hours)
+    params.require(:project).permit(:name, :description, :code_url, :playable_url, :hours, :hackatime_project_name)
   end
 end
