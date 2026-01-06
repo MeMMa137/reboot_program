@@ -105,8 +105,8 @@ class PagesController < ActionController::Base
   # Shows the under construction page. Requires authentication.
   def shop
     require_auth or return
-    # @shop_items = ShopItem.where(status: [ "active", "in stock", "stock", nil, "" ]).order(:cost)
-    render :shop_under_construction
+    @shop_items = ShopItem.where(status: [ "active", "in stock", "stock", nil, "" ]).order(:cost)
+    # Renders app/views/pages/shop.html.erb by default
   end
 
   # POST /shop/purchase
