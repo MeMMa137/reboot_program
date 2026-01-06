@@ -102,10 +102,11 @@ class PagesController < ActionController::Base
   end
 
   # GET /shop
-  # Shows the shop page. Requires authentication.
+  # Shows the under construction page. Requires authentication.
   def shop
     require_auth or return
-    @shop_items = ShopItem.where(status: [ "active", "in stock", "stock", nil, "" ]).order(:cost)
+    # @shop_items = ShopItem.where(status: [ "active", "in stock", "stock", nil, "" ]).order(:cost)
+    render :shop_under_construction
   end
 
   # POST /shop/purchase
